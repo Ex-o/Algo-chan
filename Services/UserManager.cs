@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using algochan.API;
 using algochan.Helpers;
 using algochan.OJ;
+using Discord;
 using Discord.WebSocket;
 
 namespace algochan.Services
@@ -14,30 +15,26 @@ namespace algochan.Services
     public class UserManager
     {
         #region Fields
-
-        private readonly Dictionary<string, User> _userList = new Dictionary<string, User>();
+        private const long CpcId = 326795829664808960;
+        private readonly Dictionary<ulong, User> _userList = new Dictionary<ulong, User>();
         private readonly OjManager _ojManager;
         private readonly DataManager _dataManager = new DataManager();
         private readonly IReadOnlyCollection<SocketGuild> _servers;
-
-        //(!!)ServerID
-        private SocketGuild MyServer => _servers.FirstOrDefault(i => i.Id == 000000000000);
         //private DateTime time = new DateTime();
-
         #endregion
+        private SocketGuild MyServer => _servers.FirstOrDefault(i => i.Id == CpcId);
+        public bool UserExists(ulong discordId) => _dataManager.UserExists(discordId);
+        private SocketGuildUser FindUser(ulong userDiscordId) => MyServer.Users.FirstOrDefault(i => i.Id == userDiscordId);
+        private SocketGuildUser FindUser(int userDiscriminator) => MyServer.Users.FirstOrDefault(i => i.DiscriminatorValue == userDiscriminator);
         public UserManager(IReadOnlyCollection<SocketGuild> servers, OjManager ojManager)
         {
             _servers = servers;
             _ojManager = ojManager;
+
             Initialize();
             NotifyCheck();
         }
-
-        public Dictionary<string, User> DebugGetAllUsers()
-        {
-            return _userList;
-        }
-
+        public User GetUser(ulong discordId) => _userList[discordId];
         public void NotifyCheck()
         {
             Task.Factory.StartNew(() =>
@@ -52,10 +49,11 @@ namespace algochan.Services
                                 if (!user.Value.Subscriped) continue;
 
                                 var guilduser =
-                                    MyServer.Users.FirstOrDefault(i => i.Discriminator == user.Key.Split('#')[1]);
+                                    MyServer.Users.FirstOrDefault(i => i.Id == user.Key);//.Split('#')[1]);
 
                                 if (guilduser == null)
                                     continue;
+
                                 var channel = guilduser.GetOrCreateDMChannelAsync().Result;
 
                                 if (channel == null)
@@ -65,31 +63,20 @@ namespace algochan.Services
                             }
             }).Repeat(new CancellationTokenSource().Token, TimeSpan.FromMinutes(1));
         }
-
-        public bool UserExists(string discordInfo)
-        {
-            return _dataManager.UserExists(discordInfo);
-        }
-
-        public void AddUser(string discordInfo, string codeforcesHandle)
+        public void AddUser(ulong discordId, string codeforcesHandle)
         {
             var jsonTxt = Utility.DownloadString($"http://codeforces.com/api/user.info?handles={codeforcesHandle}");
             var obj = new JavaScriptSerializer().Deserialize<UserObject>(jsonTxt);
 
-            if (_dataManager.UserExists(discordInfo))
+            if (_dataManager.UserExists(discordId))
             {
-                _userList[discordInfo] = obj.result[0];
+                _userList[discordId] = obj.result[0];
             }
             else
             {
                 if (obj.status == "OK")
-                    _dataManager.AddUser(discordInfo, new JavaScriptSerializer().Serialize(obj.result[0]));
+                    _dataManager.AddUser(discordId, new JavaScriptSerializer().Serialize(obj.result[0]));
             }
-        }
-
-        public User GetUser(string discordInfo)
-        {
-            return _userList[discordInfo];
         }
 
         public void Initialize()
@@ -98,9 +85,8 @@ namespace algochan.Services
             {
                 _dataManager.Initialize();
                 var users = _dataManager.GetAllUsers();
-
                 while (users.Read())
-                    _userList[users["discordInfo"] as string]
+                    _userList[Convert.ToUInt64(users["discordInfo"] as string)]
                         = new JavaScriptSerializer().Deserialize<User>(
                             EncryptionHelper.Decrypt(users["serializedData"] as string));
 
@@ -111,57 +97,83 @@ namespace algochan.Services
                 //    var x = users["discordId"].ToString();
                 //    var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == ulong.Parse(x));
                 //    if (discordUser == null) continue;
-                //    var discordInfo = discordUser.Username + '#' + discordUser.DiscriminatorValue;
-                //    _userList[discordInfo].Subscriped = true;
+                //    var discordId = discordUser.Username + '#' + discordUser.DiscriminatorValue;
+                //    _userList[discordId].Subscriped = true;
                 //}
             });
         }
 
+        internal async Task RemoveRole(SocketGuildUser user)
+        {
+            try
+            {
+                await user.RemoveRolesAsync(user.Roles.Where(i =>
+                    !new[] {"Moderator", "Administrator", "Virtual Participant", "@everyone"}.Any(i.Name.Contains)));
+            }
+            catch { }
+        }
+        internal async Task RemoveAllRoles()
+        {
+            foreach (var user in MyServer.Users)
+                await RemoveRole(user);
+        }
+        internal async Task UpdateRole(ulong discordId, string role)
+        {
+            var srvUser = FindUser(discordId);
+
+            var srvRole = MyServer.Roles.FirstOrDefault(i => i.Name == role);
+
+            if (srvUser == null || srvRole == null)
+                return;
+
+            await RemoveRole(srvUser);
+            await srvUser.AddRoleAsync(srvRole);
+        }
         internal async Task UpdateSerliazedObjects()
         {
             await Task.Factory.StartNew(async () =>
             {
+                await RemoveAllRoles();
                 foreach (var user in _userList.ToArray())
                 {
                     var jsonTxt =
                         Utility.DownloadString($"http://codeforces.com/api/user.info?handles={user.Value.handle}");
                     var obj = new JavaScriptSerializer().Deserialize<UserObject>(jsonTxt);
 
+                    if(obj == null) continue;
+
                     if (obj.status == "OK")
                     {
                         _userList[user.Key] = obj.result[0];
                         _dataManager.UpdateUser(user.Key, new JavaScriptSerializer().Serialize(obj.result[0]));
                         var role = Utility.RolePicker(obj.result[0].rating);
-                        var srvUser = MyServer.Users.FirstOrDefault(i =>
-                            i.DiscriminatorValue.ToString() == user.Key.Split('#')[1]);
-                        if (srvUser == null) continue;
-                        await srvUser.RemoveRolesAsync(srvUser.Roles.Where(i =>
-                            !new[] {"Moderator", "Administrator", "@everyone"}.Any(i.Name.Contains)));
-                        await srvUser.AddRoleAsync(MyServer.Roles.FirstOrDefault(i => i.Name == role));
+                        await UpdateRole(user.Key, role);
                     }
 
                     await Task.Delay(500);
                 }
             });
         }
-
-        internal void RemoveSubscribe(ulong id)
+        internal void RemoveSubscribe(ulong discordId)
         {
-            _dataManager.RemoveSubscribe(id);
-            var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == id);
+            _dataManager.RemoveSubscribe(discordId);
+            var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == discordId);
 
             if (discordUser == null) return;
 
-            var discordInfo = discordUser.Username + '#' + discordUser.DiscriminatorValue;
-            _userList[discordInfo].Subscriped = false;
+            _userList[discordId].Subscriped = false;
         }
-
-        internal void AddSubscribe(ulong id)
+        internal void AddSubscribe(ulong discordId)
         {
-            _dataManager.AddSubscribe(id);
-            var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == id);
-            var discordInfo = discordUser.Username + '#' + discordUser.DiscriminatorValue;
-            _userList[discordInfo].Subscriped = true;
+            _dataManager.AddSubscribe(discordId);
+            var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == discordId);
+            _userList[discordId].Subscriped = true;
+        }
+        internal async Task<string> VirtualContestPicker(string[] handles)
+        {
+            var picker = new VirtualContestPicker(handles);
+            var res = await picker.Pick();
+            return res;
         }
     }
 }

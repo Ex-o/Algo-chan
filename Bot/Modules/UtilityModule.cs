@@ -91,8 +91,16 @@ namespace algochan.Bot.Modules
         {
             await Task.Factory.StartNew(() =>
             {
+                BigInteger lhs;
+                int rhs;
+                BigInteger.TryParse(num.Split('^')[0], out lhs);
+                int.TryParse(num.Split('^')[1], out rhs);
+
+                if (lhs == null)
+                    return;
+                
                 Context.Channel.SendMessageAsync(
-                    $"{BigInteger.Parse(num.Split('^')[0])}^{BigInteger.Parse(num.Split('^')[1])} = {BigInteger.Pow(BigInteger.Parse(num.Split('^')[0]), int.Parse(num.Split('^')[1]))}");
+                    $"{lhs}^{rhs} = {BigInteger.Pow(lhs, rhs)}");
             });
         }
 
@@ -113,5 +121,7 @@ namespace algochan.Bot.Modules
             else
                 await ReplyAsync("Bassel?");
         }
+
+        
     }
 }

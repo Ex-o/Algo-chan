@@ -3,7 +3,7 @@ using algochan.API;
 
 namespace algochan.OJ
 {
-    public class OjBase : IOnlineJudge
+    public class OjBase : IOnlineJudgeBase
     {
         private readonly List<Contest> _contests;
 

@@ -53,10 +53,10 @@ namespace algochan.Bot
                   message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
             var context = new CommandContext(_client, message);
             var result = await _cmdservice.ExecuteAsync(context, argPos, _servives);
+            
 
-
-            if (!result.IsSuccess)
-                await context.Channel.SendMessageAsync("Something is not right!");
+            //if (!result.IsSuccess)
+            //    await context.Channel.SendMessageAsync("Something is not right!");
         }
 
         private Task Logger(LogMessage message)

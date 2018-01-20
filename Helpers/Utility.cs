@@ -15,7 +15,14 @@ namespace algochan.Helpers
 
         public static string DownloadString(string url)
         {
-            return client.DownloadString(url);
+            try
+            {
+                return client.DownloadString(url);
+            }
+            catch (Exception e)
+            {
+                return "";
+            }
         }
 
         public static DateTime FromUnixTime(long unixTime)

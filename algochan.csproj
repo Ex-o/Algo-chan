@@ -175,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\API.cs" />
+    <Compile Include="API\ProblemSet.cs" />
     <Compile Include="API\User.cs" />
     <Compile Include="Bot\Bot.cs" />
     <Compile Include="Bot\Modules\CodeforcesModule\Codeforces.Module.Others.cs" />
@@ -192,7 +193,7 @@
     <Compile Include="OJ\Codeforces\Codeforces.cs" />
     <Compile Include="OJ\Codeforces\SubmissionChecker.cs" />
     <Compile Include="OJ\Codeforces\VirtualContestPicker.cs" />
-    <Compile Include="OJ\IOnlineJudge.cs" />
+    <Compile Include="OJ\IOnlineJudgeBase.cs" />
     <Compile Include="OJ\OJBase.cs" />
     <Compile Include="OJ\OnlineJudge.cs" />
     <Compile Include="Program.cs" />

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using algochan.Helpers;
+using algochan.OJ;
 using Discord;
 using Discord.Commands;
 
@@ -13,7 +14,7 @@ namespace algochan.Bot.Modules.CodeforcesModule
         [Command("sethandle", RunMode = RunMode.Async)]
         public async Task SetHandle(string codeforcesHandle)
         {
-            var discordInfo = Context.Message.Author.ToString();
+            var discordInfo = Context.Message.Author.Id;
 
             var rndContest = RandomContestGenerator.Get();
 
@@ -50,8 +51,15 @@ namespace algochan.Bot.Modules.CodeforcesModule
 
             await Task.Delay(60000);
 
-            var lastSub = SubmissionChecker.Get(codeforcesHandle);
-            if (lastSub.contestId == rndContest.Item2 && lastSub.problem.index == rndContest.Item3.ToString())
+            var lastSub = SubmissionChecker.Get(codeforcesHandle, 1);
+
+            if (lastSub == null)
+            {
+                await ReplyAsync("", false, Failed());
+                return;
+            }
+
+            if (lastSub[0].contestId == rndContest.Item2 && lastSub[0].problem.index == rndContest.Item3.ToString())
             {
                 _userManager.AddUser(discordInfo, codeforcesHandle);
 
@@ -92,37 +100,37 @@ namespace algochan.Bot.Modules.CodeforcesModule
             }
             else
             {
-                #region ReplyBuild
-
-                embed = new EmbedBuilder()
-                {
-                    Color = Color.Red,
-                    Author = new EmbedAuthorBuilder
-                    {
-                        Name = "Verification: Failed",
-                        IconUrl = "https://cdn2.iconfinder.com/data/icons/security-2-1/512/security_fail-512.png",
-                        Url = ""
-                    },
-                    Footer = new EmbedFooterBuilder
-                    {
-                        Text = "YOU HAD ONE JOB!",
-                        IconUrl = ""
-                    },
-                    Fields = new List<EmbedFieldBuilder>
-                    {
-                        new EmbedFieldBuilder
-                        {
-                            Name = "Just try again",
-                            IsInline = false,
-                            Value = "I am sure you can do it."
-                        }
-                    }
-                };
-
-                #endregion
-
-                await ReplyAsync("", false, embed);
+                await ReplyAsync("", false, Failed());
             }
+        }
+
+        private Embed Failed()
+        {
+            var embed = new EmbedBuilder()
+            {
+                Color = Color.Red,
+                Author = new EmbedAuthorBuilder
+                {
+                    Name = "Verification: Failed",
+                    IconUrl = "https://cdn2.iconfinder.com/data/icons/security-2-1/512/security_fail-512.png",
+                    Url = ""
+                },
+                Footer = new EmbedFooterBuilder
+                {
+                    Text = "YOU HAD ONE JOB!",
+                    IconUrl = ""
+                },
+                Fields = new List<EmbedFieldBuilder>
+                {
+                    new EmbedFieldBuilder
+                    {
+                        Name = "Just try again",
+                        IsInline = false,
+                        Value = "I am sure you can do it."
+                    }
+                }
+            };
+            return embed;
         }
     }
 }

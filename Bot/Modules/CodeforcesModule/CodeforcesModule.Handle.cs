@@ -17,7 +17,7 @@ namespace algochan.Bot.Modules.CodeforcesModule
                                                                            i.Nickname.ToLower().Contains(user.ToLower())
                                                                            || i.Id.ToString() == user);
 
-            var discordInfo = $"{userInfo.Username}#{userInfo.Discriminator}";
+            var discordInfo = userInfo.Id;
 
             if (_userManager.UserExists(discordInfo))
                 await ReplyAsync($"http://codeforces.com/profile/{_userManager.GetUser(discordInfo).handle}");

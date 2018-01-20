@@ -1,4 +1,6 @@
-﻿namespace algochan.API
+﻿using System.Collections.Generic;
+
+namespace algochan.API
 {
     public class User
     {
@@ -22,5 +24,7 @@
         public string avatar { get; set; }
         public string titlePhoto { get; set; }
         public bool Subscriped { get; set; }
+
+        public List<Submission> Submissions;
     }
 }

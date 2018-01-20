@@ -1,14 +1,19 @@
 ﻿using System.Data.SQLite;
+using System.Runtime.Remoting.Channels;
 using algochan.Helpers;
 
 namespace algochan.Services
 {
     public class DataManager
     {
-        private readonly SQLiteConnection _dbConnection = new SQLiteConnection(
-            @"Data Source=C:\Users\kmepv\Documents\Visual Studio 2015\Projects\algochan\algochan\bin\Debug\algochan.db;Version=3;");
+        private const string SERVER =
+            @"Data Source=C:\Users\khaled\Desktop\algo\algochan.db;Version=3;";
 
-        private SQLiteDataReader Query(string qString)
+        private const string LOCAL =
+            @"Data Source=C:\Users\kmepv\Documents\Visual Studio 2015\Projects\algochan\algochan\bin\Debug\algochan.db;Version=3;";
+        private readonly SQLiteConnection _dbConnection = new SQLiteConnection(SERVER);
+
+        public SQLiteDataReader Query(string qString)
         {
             var cmd = new SQLiteCommand(qString, _dbConnection);
             return cmd.ExecuteReader();
@@ -19,24 +24,24 @@ namespace algochan.Services
             _dbConnection.Open();
         }
 
-        public bool UserExists(string discordInfo)
+        public bool UserExists(ulong discordId)
         {
-            return Query($@"SELECT * FROM users WHERE discordInfo = ""{discordInfo}""").HasRows;
+            return Query($@"SELECT * FROM users WHERE discordInfo = ""{discordId}""").HasRows;
         }
 
-        public void AddUser(string discordInfo, string serliazedData)
+        public void AddUser(ulong discordId, string serliazedData)
         {
-            Query($@"INSERT INTO users (discordInfo, serializedData) values (""{discordInfo}"", ""{
+            Query($@"INSERT INTO users (discordInfo, serializedData) values (""{discordId}"", ""{
                     EncryptionHelper.Encrypt(serliazedData)
                 }"")");
         }
 
-        public void UpdateUser(string discordInfo, string serliazedData)
+        public void UpdateUser(ulong discordId, string serliazedData)
         {
             Query(
                 $@"UPDATE users SET serializedData = ""{
                         EncryptionHelper.Encrypt(serliazedData)
-                    }"" WHERE discordInfo = ""{discordInfo}""");
+                    }"" WHERE discordInfo = ""{discordId}""");
         }
 
         public SQLiteDataReader GetAllUsers()

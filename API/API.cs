@@ -20,4 +20,15 @@ namespace algochan.API
         public string status { get; set; }
         public List<User> result { get; set; }
     }
+
+    public class ProblemObject
+    {
+        public  string status { get; set; }
+        public PSet result { get; set; }
+    }
+
+    public class PSet
+    {
+        public List<Problem> problems;
+    }
 }

@@ -4,7 +4,7 @@ namespace algochan.API
 {
     public class Problem
     {
-        public int contest { get; set; }
+        public int contestId { get; set; }
         public string index { get; set; }
         public string name { get; set; }
         public ProblemType type { get; set; }

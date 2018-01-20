@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using algochan.Helpers;
 using algochan.OJ;
+using Discord;
 using Discord.Commands;
 
 namespace algochan.Bot.Modules.CodeforcesModule
@@ -26,10 +27,11 @@ namespace algochan.Bot.Modules.CodeforcesModule
         }
 
         [Command("updateroles")]
-        [RequireOwner]
+        [RequireUserPermission(ChannelPermission.ManageMessages)]
         public async Task UpdateRoles()
         {
             await _userManager.UpdateSerliazedObjects();
+            await ReplyAsync("Alright, don't cry when you go down tho!");
         }
     }
 }
