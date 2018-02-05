@@ -17,46 +17,28 @@ namespace algochan.OJ
             _handles = handles.ToList();
         }
 
-        public async Task<string> Pick()
+        public async Task<List<KeyValuePair<int, int>>> Pick()
         {
             return await Task.Factory.StartNew(() =>
             {
                 List<User> users = new List<User>();
+                List<KeyValuePair<int, int>> res = new List<KeyValuePair<int, int>>();
                 foreach (var handle in _handles)
                 {
-                    users.Add(new User() {handle = handle});
-                    users[users.Count - 1].Submissions = SubmissionChecker.Get(handle, 1000000);
+                    var subs = SubmissionChecker.Get(handle, 1000000);
+                    if(subs == null || subs.Count == 0) continue;
+                    
+                    users.Add(new User()
+                    {
+                        handle = handle,
+                        Submissions = subs
+                    });
                 }
 
-                foreach (var contest in ProblemSet.Contests)
-                {
-                    bool ok = true;
-                    foreach (var problem in contest.Value)
-                    {
-                        foreach (var handle in _handles)
-                        {
-                            var user = users.Find(i => i.handle == handle);
+                var result = ProblemSet.Contests.Where(c =>
+                    users.All(u => u.Submissions.All(s => c.Value.All(p => p.name != s.problem.name))));
 
-                            if (user.Submissions != null &&
-                                user.Submissions.Exists(i => i.problem.name == problem.name))
-                            {
-                                ok = false;
-                                break;
-                            }
-
-                            if (!ok) break;
-                        }
-
-                        if (!ok) break;
-                    }
-
-                    if (ok)
-                    {
-                        return $"http://codeforces.com/contest/{contest.Key.ToString()}/";
-                    }
-                }
-
-                return "Not found!";
+                return result.ToDictionary(k => k.Key, v => v.Value.Count).ToList();
             });
         }
     }

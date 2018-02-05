@@ -23,21 +23,28 @@ namespace algochan.Bot
             });
 
             _client.Log += Logger;
-            _client.Ready += InitCommands;
+            _client.Ready += InitServices;
         }
 
         public async Task Run()
         {
+            await InitCommands();
             await _client.LoginAsync(TokenType.Bot, _token);
             await _client.StartAsync();
             await _client.SetGameAsync("!help");
             await Task.Delay(-1);
         }
 
-        private async Task InitCommands()
+        private Task InitServices()
         {
             _servives = _map.AddSingleton(_client).AddSingleton(new UserManager(_client.Guilds, _ojManager))
                 .AddSingleton(_ojManager).BuildServiceProvider();
+
+            return Task.CompletedTask;
+        }
+        private async Task InitCommands()
+        {
+            
             await _cmdservice.AddModulesAsync(Assembly.GetEntryAssembly());
 
             _client.MessageReceived += HandleCommand;
@@ -49,6 +56,11 @@ namespace algochan.Bot
             if (message == null) return;
 
             var argPos = 0;
+            if (message.ToString().Replace(" ", String.Empty).ToLower().Contains("discord.gg"))
+            {
+               await message.DeleteAsync();
+                return;
+            }
             if (!(message.HasCharPrefix('!', ref argPos) ||
                   message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
             var context = new CommandContext(_client, message);

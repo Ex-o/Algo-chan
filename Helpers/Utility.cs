@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using algochan.API;
 using Discord;
 
@@ -11,13 +13,15 @@ namespace algochan.Helpers
 {
     internal static class Utility
     {
-        private static readonly WebClient client = new WebClient();
+        //private static readonly WebClient client = new WebClient();
 
         public static string DownloadString(string url)
         {
             try
             {
-                return client.DownloadString(url);
+                var webClient = new WebClient();
+                webClient.Encoding = Encoding.UTF8;
+                return HttpUtility.HtmlDecode(webClient.DownloadString(url));
             }
             catch (Exception e)
             {

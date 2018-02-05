@@ -12,7 +12,7 @@ namespace algochan.OJ
             var jsonTxt =
                 Utility.DownloadString(
                     $"http://codeforces.com/api/user.status?handle={codeforcesHandle}&from=1&count={count}");
-            var obj = new JavaScriptSerializer().Deserialize<SubmissionObject>(jsonTxt);
+            var obj = new JavaScriptSerializer() {MaxJsonLength = int.MaxValue}.Deserialize<SubmissionObject>(jsonTxt);
             return obj?.result;
         }
     }

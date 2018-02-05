@@ -11,7 +11,5 @@ namespace algochan.API
     public class ProblemSet
     {
         public static Dictionary<int, List<Problem>> Contests;
-
-        
     }
 }

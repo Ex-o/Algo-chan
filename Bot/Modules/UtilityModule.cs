@@ -31,31 +31,37 @@ namespace algochan.Bot.Modules
                 {
                     new EmbedFieldBuilder
                     {
-                        Name = "!codeforces sethandle yourhandle",
+                        Name = "!cf sethandle yourhandle",
                         IsInline = false,
                         Value = "Sets your codeforces handle and grants you a color."
                     },
                     new EmbedFieldBuilder
                     {
-                        Name = "!codeforces handle user",
+                        Name = "!cf handle user",
                         IsInline = false,
                         Value = "Get the handles of other users in this server."
                     },
                     new EmbedFieldBuilder
                     {
-                        Name = "!codeforces updateroles",
+                        Name = @"!cf vc Div1/2 count ""handle1 handle2 handle3 handle4...""",
+                        IsInline = false,
+                        Value = @"Virtual Contest Picker: You can pick 5 random contests that you and/or your friends didn't attempt any problem in. e.g(``!cf vc Div1 5 ""Tourist Petr""``). The number is the minimum number of problems for each contest and the handles have to be between quotes and space separated."
+                    },
+                    new EmbedFieldBuilder
+                    {
+                        Name = "!cf updateroles",
                         IsInline = false,
                         Value = "Update roles after a contest **(currently restricted to server admins)**"
                     },
                     new EmbedFieldBuilder
                     {
-                        Name = "!codeforces contests",
+                        Name = "!cf contests",
                         IsInline = false,
                         Value = "Get a list of the upcoming contests on codeforces."
                     },
                     new EmbedFieldBuilder
                     {
-                        Name = "!codeforces reminder on||off",
+                        Name = "!cf reminder on||off",
                         IsInline = false,
                         Value =
                             "algo-chan will remind you when a contest is about to start (1 hour earlier then every 25 minutes)."
@@ -89,6 +95,7 @@ namespace algochan.Bot.Modules
         [Summary("Pows a number.")]
         public async Task Square([Summary("The number to square.")] string num)
         {
+            /*
             await Task.Factory.StartNew(() =>
             {
                 BigInteger lhs;
@@ -101,7 +108,8 @@ namespace algochan.Bot.Modules
                 
                 Context.Channel.SendMessageAsync(
                     $"{lhs}^{rhs} = {BigInteger.Pow(lhs, rhs)}");
-            });
+            });*/
+            await ReplyAsync("temporary disabled", false);
         }
 
         [Command("say")]

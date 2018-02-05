@@ -91,12 +91,12 @@ namespace algochan.Bot.Modules.CodeforcesModule
                 #endregion
 
                 await ReplyAsync("", false, embed);
-                _userManager.AddUser(discordInfo, codeforcesHandle);
+
+                await Task.Delay(10);
                 var rating = _userManager.GetUser(discordInfo).rating;
                 var role = Utility.RolePicker(rating);
 
-                var user = (IGuildUser) Context.User;
-                await user.AddRoleAsync(user.Guild.Roles.First(w => w.Name == role));
+                await _userManager.FindUser(discordInfo).AddRoleAsync(Context.Guild.Roles.First(w => w.Name == role));
             }
             else
             {

@@ -24,7 +24,7 @@ namespace algochan.Services
         #endregion
         private SocketGuild MyServer => _servers.FirstOrDefault(i => i.Id == CpcId);
         public bool UserExists(ulong discordId) => _dataManager.UserExists(discordId);
-        private SocketGuildUser FindUser(ulong userDiscordId) => MyServer.Users.FirstOrDefault(i => i.Id == userDiscordId);
+        public SocketGuildUser FindUser(ulong userDiscordId) => MyServer.Users.FirstOrDefault(i => i.Id == userDiscordId);
         private SocketGuildUser FindUser(int userDiscriminator) => MyServer.Users.FirstOrDefault(i => i.DiscriminatorValue == userDiscriminator);
         public UserManager(IReadOnlyCollection<SocketGuild> servers, OjManager ojManager)
         {
@@ -37,6 +37,7 @@ namespace algochan.Services
         public User GetUser(ulong discordId) => _userList[discordId];
         public void NotifyCheck()
         {
+            //TODO::Properly.
             Task.Factory.StartNew(() =>
             {
                 var contests = _ojManager.GetContests(OnlineJudge.CF);
@@ -49,7 +50,7 @@ namespace algochan.Services
                                 if (!user.Value.Subscriped) continue;
 
                                 var guilduser =
-                                    MyServer.Users.FirstOrDefault(i => i.Id == user.Key);//.Split('#')[1]);
+                                    MyServer.Users.FirstOrDefault(i => i.Id == user.Key);
 
                                 if (guilduser == null)
                                     continue;
@@ -75,7 +76,10 @@ namespace algochan.Services
             else
             {
                 if (obj.status == "OK")
+                {
                     _dataManager.AddUser(discordId, new JavaScriptSerializer().Serialize(obj.result[0]));
+                    _userList[discordId] = obj.result[0];
+                }
             }
         }
 
@@ -129,7 +133,7 @@ namespace algochan.Services
             await RemoveRole(srvUser);
             await srvUser.AddRoleAsync(srvRole);
         }
-        internal async Task UpdateSerliazedObjects()
+        internal async Task UpdateAllUserObjects()
         {
             await Task.Factory.StartNew(async () =>
             {
@@ -167,9 +171,14 @@ namespace algochan.Services
         {
             _dataManager.AddSubscribe(discordId);
             var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == discordId);
-            _userList[discordId].Subscriped = true;
+            if(_userList.ContainsKey(discordId))
+                _userList[discordId].Subscriped = true;
+            else
+            {
+                _userList.Add(discordId, new User() { Subscriped = true });
+            }
         }
-        internal async Task<string> VirtualContestPicker(string[] handles)
+        internal async Task<List<KeyValuePair<int , int>>> VirtualContestPicker(string[] handles)
         {
             var picker = new VirtualContestPicker(handles);
             var res = await picker.Pick();

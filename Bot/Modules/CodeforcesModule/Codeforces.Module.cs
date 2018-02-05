@@ -1,8 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using algochan.OJ;
 using algochan.Services;
 using Discord.Commands;
 using System.Threading.Tasks;
+using algochan.API;
+using algochan.Helpers;
+using Discord;
 
 namespace algochan.Bot.Modules.CodeforcesModule
 {
@@ -17,12 +23,47 @@ namespace algochan.Bot.Modules.CodeforcesModule
             _userManager = userManager;
             _ojManager = ojManager;
         }
-
-        [Command("vc")]
-        public async Task Pick(string handles)
+        async void ContestPicker(string div, int count, string handles)
         {
-            await Task.Factory.StartNew(async () =>
-                ReplyAsync(await _userManager.VirtualContestPicker(handles.Split(' '))));
+            List<KeyValuePair<int, int>> availableContests = new List<KeyValuePair<int, int>>();
+
+            availableContests = await _userManager.VirtualContestPicker(handles.Split(' '));
+            //var rndSelection = availableContests.OrderBy(x => Guid.NewGuid()).ToList().Take(5);
+            var globalContests = RandomContestGenerator.Contests;
+            List<Contest> rndSelection = globalContests.Where(i => availableContests.Any(x => x.Value >= count && x.Key == i.id && i.name.Contains(div.ToLower() == "div1" ? "Div. 1" : "Div. 2"))).OrderBy(x => Guid.NewGuid()).ToList().Take(6).ToList();
+            var embed = new EmbedBuilder();
+            embed.ThumbnailUrl = "https://26.org.uk/wp-content/uploads/2016/06/Trophyicon_1198.png";
+            embed.Color = Color.Blue;
+            embed.Author = new EmbedAuthorBuilder
+            {
+                Name = "List of available contests:",
+                IconUrl = "",
+            };
+            embed.Footer = new EmbedFooterBuilder
+            {
+                Text = "Enjoy your practice.",
+
+            };
+            foreach (var contest in rndSelection)
+            {
+                embed.Fields.Add(new EmbedFieldBuilder()
+                {
+                    Name = $"[{contest.name}]\n(http://codeforces.com/contest/{contest.id})",
+
+                    IsInline = false,
+                    Value = $"{availableContests.Find(i => i.Key == contest.id).Value} problems."
+                });
+            }
+
+            await ReplyAsync("", false, embed);
+        }
+        [Command("vc")]
+        public async Task Pick(string div, int count, string handles)
+        {
+            Task.Factory.StartNew(() =>
+            {
+                ContestPicker(div, count, handles);
+            });
         }
 
         [Command("magic")]

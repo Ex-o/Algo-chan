@@ -16,7 +16,7 @@ namespace algochan
             ojManager.AddJudge(new Codeforces());
             ojManager.InitializeJudges();
 
-            var algochan = new Algochan("MzM1MTk2OTc4MDYzMzQzNjM3.DEmXoQ.OSjbxZksjk2CGSX7m3QUIsJkjIo", ojManager);
+            var algochan = new Algochan("token", ojManager);
             algochan.Run().GetAwaiter().GetResult();
         }
     }

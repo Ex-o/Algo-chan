@@ -30,7 +30,7 @@ namespace algochan.Bot.Modules.CodeforcesModule
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         public async Task UpdateRoles()
         {
-            await _userManager.UpdateSerliazedObjects();
+            await _userManager.UpdateAllUserObjects();
             await ReplyAsync("Alright, don't cry when you go down tho!");
         }
     }
