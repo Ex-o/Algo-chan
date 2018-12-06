@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../Discord.Net.targets" />
+  <PropertyGroup>
+    <AssemblyName>Discord.Net.DebugTools</AssemblyName>
+    <RootNamespace>Discord</RootNamespace>
+    <Description>A Discord.Net extension adding some helper classes for diagnosing issues.</Description>
+    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Discord.Net.Core\Discord.Net.Core.csproj" />
+  </ItemGroup>
+</Project>
