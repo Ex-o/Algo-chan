@@ -26,3 +26,10 @@ Algo-chan has my [Codeforces.NET](https://github.com/Ex-o/Codeforces.NET) as a d
 ## !pow x^y
 ``y is the positive exponent! much wow``
 ## !help
+
+# Contribution:
+Don't hesitate to create a pull request if you want to fix/add something.
+
+|[![discord](https://cdn.discordapp.com/attachments/266240393639755778/281920766490968064/discord.png)](https://discord.gg/algorithms)|
+|---|
+| **Join the Competitive Programming Community Discord to see the bot in action** |
