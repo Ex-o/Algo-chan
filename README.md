@@ -4,7 +4,7 @@ An open source Discord chat bot for competitive programming utilities.
 Algo-chan has my [Codeforces.NET](https://github.com/Ex-o/Codeforces.NET) as a dependency so make sure to clone that as well.
 
 # Supported Commands:
-# -------------------
+
 ## !cf sethandle yourhandle
 ``Sets your codeforces handle and grants you a color.``
 ## !cf handle user
