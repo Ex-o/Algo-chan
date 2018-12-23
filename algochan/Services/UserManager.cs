@@ -18,6 +18,8 @@ namespace algochan.Services
         #region Fields
         private const long CpcId = 326795829664808960;
         private readonly Dictionary<ulong, User> _userList = new Dictionary<ulong, User>();
+        private readonly List<ulong> _subscribersList = new List<ulong>();
+        private readonly Dictionary<int, DateTime> _contestNotificationsHistory = new Dictionary<int, DateTime>();
         private readonly OjManager _ojManager;
         private readonly DataManager _dataManager = new DataManager();
         private readonly IReadOnlyCollection<SocketGuild> _servers;
@@ -25,8 +27,11 @@ namespace algochan.Services
         #endregion
         private SocketGuild MyServer => _servers.FirstOrDefault(i => i.Id == CpcId);
         public bool UserExists(ulong discordId) => _dataManager.UserExists(discordId);
+        public bool ProblemExists(ulong discordId, string problemUrl) => _dataManager.ProblemExists(discordId, problemUrl);
+        public void AddFavoriteProblem(ulong discordId, string problemUrl) => _dataManager.AddFavoriteProblem(discordId, problemUrl);
         public SocketGuildUser FindUser(ulong userDiscordId) => MyServer.Users.FirstOrDefault(i => i.Id == userDiscordId);
         private SocketGuildUser FindUser(int userDiscriminator) => MyServer.Users.FirstOrDefault(i => i.DiscriminatorValue == userDiscriminator);
+
         public UserManager(IReadOnlyCollection<SocketGuild> servers, OjManager ojManager)
         {
             _servers = servers;
@@ -38,31 +43,45 @@ namespace algochan.Services
         public User GetUser(ulong discordId) => _userList[discordId];
         public void NotifyCheck()
         {
-            //Task.Factory.StartNew(() =>
-            //{
-            //    var contests = _ojManager.GetContests(OnlineJudge.CF);
-            //    foreach (var contest in contests)
-            //        if ((Utility.FromUnixTime(contest.StartTime) - DateTime.UtcNow).TotalMinutes <= 60)
-            //            if ((DateTime.Now - contest.time).TotalMinutes >= 20 && contest.time > DateTime.Now)
-            //                foreach (var user in _userList)
-            //                {
-            //                    contest.time = DateTime.Now;
-            //                    if (!user.Value.Subscriped) continue;
+            Task.Factory.StartNew(async() =>
+            {
+                try
+                {
+                    _ojManager.GetJudgesList().First(i => i.Name == "codeforces").ReloadContests();
+                    var contests = _ojManager.GetContests(OnlineJudge.CF);
+                    foreach (var contest in contests)
+                    {
+                        if (!_contestNotificationsHistory.ContainsKey(contest.Id))
+                        {
+                            _contestNotificationsHistory.Add(contest.Id, new DateTime());
+                        }
+                        if ((Utility.FromUnixTime(contest.StartTime) - DateTime.UtcNow).TotalMinutes <= 60)
+                            if ((DateTime.Now - _contestNotificationsHistory[contest.Id]).TotalMinutes >= 20 && Utility.FromUnixTime(contest.StartTime) > DateTime.Now)
+                                foreach (var user in _userList)
+                                {
+                                    if (!_subscribersList.Contains(user.Key)) continue;
 
-            //                    var guilduser =
-            //                        MyServer.Users.FirstOrDefault(i => i.Id == user.Key);//.Split('#')[1]);
+                                    var guildUser =
+                                        MyServer.Users.FirstOrDefault(i => i.Id == user.Key);//.Split('#')[1]);
 
-            //                    if (guilduser == null)
-            //                        continue;
+                                    if (guildUser == null)
+                                        continue;
 
-            //                    var channel = guilduser.GetOrCreateDMChannelAsync().Result;
+                                    var channel = guildUser.GetOrCreateDMChannelAsync().Result;
 
-            //                    if (channel == null)
-            //                        continue;
+                                    if (channel == null)
+                                        continue;
 
-            //                    channel.SendMessageAsync("Contest starts soon\n", false, Utility.BuildContest(contest));
-            //                }
-            //}).Repeat(new CancellationTokenSource().Token, TimeSpan.FromMinutes(1));
+                                    await channel.SendMessageAsync("Contest starts soon\n", false, Utility.BuildContest(contest));
+                                }
+                        _contestNotificationsHistory[contest.Id] = DateTime.Now;
+                    }
+                } 
+                catch
+                {
+                    Console.WriteLine("Notifications fucked up!");
+                }
+            }).Repeat(new CancellationTokenSource().Token, TimeSpan.FromMinutes(1));
         }
         public async void AddUser(ulong discordId, string codeforcesHandle)
         {
@@ -94,19 +113,28 @@ namespace algochan.Services
                         = new JavaScriptSerializer().Deserialize<User>(
                             EncryptionHelper.Decrypt(users["serializedData"] as string));
 
-                //users = _dataManager.GetSubscribers();
+                users = _dataManager.GetSubscribers();
 
-                //while(users.Read())
-                //{
-                //    var x = users["discordId"].ToString();
-                //    var discordUser = MyServer.Users.FirstOrDefault(i => i.Id == ulong.Parse(x));
-                //    if (discordUser == null) continue;
-                //    var discordId = discordUser.Username + '#' + discordUser.DiscriminatorValue;
-                //    _userList[discordId].Subscriped = true;
-                //}
+                while (users.Read())
+                {
+                    var sdiscordId = users["discordId"] as string;
+                    ulong discordId;
+                    ulong.TryParse(sdiscordId, out discordId);
+
+                    if (discordId != 0)
+                        _subscribersList.Add(discordId);
+                }
             });
         }
+        public List<string> GetAllFavorites(ulong discordId)
+        {
+            var ret = new List<string>();
+            var favorites = _dataManager.GetAllFavorites(discordId);
+            while (favorites.Read())
+                ret.Add(favorites["problem"] as string);
 
+            return ret;
+        }
         internal async Task RemoveRole(SocketGuildUser user)
         {
             try

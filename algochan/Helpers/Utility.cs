@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using algochan.Services;
 using cfapi.Objects;
 using Discord;
 
@@ -110,6 +112,35 @@ namespace algochan.Helpers
                 role = "Legendary Grandmaster";
 
             return role;
+        }
+
+        public static string IsValidCodeforcesProblemUrl(string url)
+        {
+            var data = url.Split('/').ToList();
+            int contestId = -1;
+            string problemIdx = "";
+            data.RemoveAll(i => string.IsNullOrEmpty(i));
+            if (data.Count < 3) return null;
+            if(url.Contains(@"/contest/"))
+            {
+                int.TryParse(data[data.Count - 3], out contestId);
+                problemIdx = data[data.Count - 1];
+            }
+            else if(url.Contains(@"/problemset/"))
+            {
+                int.TryParse(data[data.Count - 2], out contestId);
+                problemIdx = data[data.Count - 1];
+            }
+
+            if(contestId != 0 && !String.IsNullOrEmpty(problemIdx))
+            {
+                if (Globals.ProblemSet.Problems.Count(p => p.ContestId == contestId && p.Index == problemIdx) != 0)
+                {
+                    return $"https://codeforces.com/contest/{contestId}/problem/{problemIdx}";
+                }
+                else return null;
+            }
+            return null;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using cfapi.Objects;
 
 namespace algochan.OJ
@@ -15,10 +16,13 @@ namespace algochan.OJ
 
         public string Name { get; }
 
+        public bool IsInitialized { get; set; }
         public virtual void ParseContests()
         {
         }
-
+        public virtual void ReloadContests()
+        {
+        }
         public virtual bool IsOnline(string api)
         {
             return true;
@@ -37,6 +41,10 @@ namespace algochan.OJ
         public IReadOnlyList<Contest> GetContests()
         {
             return _contests;
+        }
+        public bool Contains(Contest contest)
+        {
+            return _contests.Find(i => i.Id == contest.Id) != null;
         }
     }
 }

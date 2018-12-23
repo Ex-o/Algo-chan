@@ -29,7 +29,10 @@ namespace algochan.OJ
         /// </summary>
         public void InitializeJudges()
         {
-            foreach (var oj in _onlineJudges) oj.ParseContests();
+            foreach (var oj in _onlineJudges) {
+                oj.ParseContests();
+                oj.IsInitialized = true;
+            }
         }
 
         public IReadOnlyList<Contest> GetContests(OnlineJudge onlineJudge)

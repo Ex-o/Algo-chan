@@ -31,17 +31,16 @@ namespace algochan.OJ
             RandomContestGenerator.Contests =
                 contests.Where(i => i.Phase == ContestPhase.FINISHED).ToList();
 
-            //Call when contests update.
-            //TODO::Call somewhere else.
-            //ParseWebPages();
-
-            var req2 = new ProblemsRequest();
-            Globals.ProblemSet = req2.GetProblemSetAsync().Result;
-            Globals.ContestsProblemsList = new JavaScriptSerializer().
-                Deserialize<Dictionary<string, List<Problem>>>(File.ReadAllText("contests.txt"))
-               .ToDictionary(k => int.Parse(k.Key), v => v.Value);
+            if (!IsInitialized)
+            {
+                LoadContestsFromFile();
+            }
         }
 
+        public override void ReloadContests()
+        {
+
+        }
         private void ParseWebPages()
         {
             //
@@ -83,6 +82,20 @@ namespace algochan.OJ
         public override bool IsOnline(string api)
         {
             return true;
+        }
+
+        private void LoadContestsFromFile()
+        {
+            //Call when contests update.
+            //TODO::Call somewhere else.
+            Globals.ContestsProblemsList = new Dictionary<int, List<Problem>>();
+            //ParseWebPages();
+
+            var req2 = new ProblemsRequest();
+            Globals.ProblemSet = req2.GetProblemSetAsync().Result;
+            Globals.ContestsProblemsList = new JavaScriptSerializer().
+                Deserialize<Dictionary<string, List<Problem>>>(File.ReadAllText("contests.txt"))
+               .ToDictionary(k => int.Parse(k.Key), v => v.Value);
         }
     }
 }

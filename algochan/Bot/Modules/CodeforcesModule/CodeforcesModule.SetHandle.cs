@@ -95,7 +95,7 @@ namespace algochan.Bot.Modules.CodeforcesModule
 
                 await ReplyAsync("", false, embed);
 
-                await Task.Delay(10);
+                await Task.Delay(50);
                 var rating = _userManager.GetUser(discordInfo).Rating;
                 var role = Utility.RolePicker(rating);
 

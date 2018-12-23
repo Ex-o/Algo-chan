@@ -19,13 +19,8 @@ namespace algochan
 {
     internal class Program
     {
-        class data
-        {
-            public int min = 5000, max;
-        }
         private static void Main(string[] args)
         {
-
             var ojManager = new OjManager();
             ojManager.AddJudge(new Codeforces());
             ojManager.InitializeJudges();
