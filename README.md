@@ -1,7 +1,7 @@
 # Algo-chan	
 An open source Discord chat bot for competitive programming utilities.	
 
-Algo-chan has my (Codeforces.NET)[https://github.com/Ex-o/Codeforces.NET] as a dependency so make sure to clone that as well.
+Algo-chan has my [Codeforces.NET](https://github.com/Ex-o/Codeforces.NET) as a dependency so make sure to clone that as well.
 
 # Supported Commands:
 # -------------------
