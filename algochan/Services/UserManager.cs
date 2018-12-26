@@ -38,50 +38,52 @@ namespace algochan.Services
             _ojManager = ojManager;
 
             Initialize();
-            NotifyCheck();
         }
         public User GetUser(ulong discordId) => _userList[discordId];
         public void NotifyCheck()
         {
-            Task.Factory.StartNew(async() =>
+            Task.Factory.StartNew(async () =>
             {
-                try
+                while (true)
                 {
-                    _ojManager.GetJudgesList().First(i => i.Name == "codeforces").ReloadContests();
-                    var contests = _ojManager.GetContests(OnlineJudge.CF);
-                    foreach (var contest in contests)
+                    try
                     {
-                        if (!_contestNotificationsHistory.ContainsKey(contest.Id))
+                        _ojManager.GetJudgesList().First(i => i.Name == "codeforces").ReloadContests();
+                        var contests = _ojManager.GetContests(OnlineJudge.CF);
+                        foreach (var contest in contests)
                         {
-                            _contestNotificationsHistory.Add(contest.Id, new DateTime());
+                            if (!_contestNotificationsHistory.ContainsKey(contest.Id))
+                            {
+                                _contestNotificationsHistory.Add(contest.Id, DateTime.UtcNow - new TimeSpan(0, 20, 30));
+                            }
+                            if ((Utility.FromUnixTime(contest.StartTime) - DateTime.UtcNow).TotalMinutes <= 60)
+                                if ((DateTime.UtcNow - _contestNotificationsHistory[contest.Id]).TotalMinutes >= 20 && Utility.FromUnixTime(contest.StartTime) > DateTime.UtcNow)
+                                    foreach (var user in _userList)
+                                    {
+                                        if (!_subscribersList.Contains(user.Key)) continue;
+
+                                        var guildUser =
+                                            MyServer.Users.FirstOrDefault(i => i.Id == user.Key);
+
+                                        if (guildUser == null)
+                                            continue;
+                                        
+                                        var channel = guildUser.GetOrCreateDMChannelAsync().Result;
+
+                                        if (channel == null)
+                                            continue;
+                                        await channel.SendMessageAsync($"{contest.Name} starts in ``{(int)(Utility.FromUnixTime(contest.StartTime) - DateTime.UtcNow).TotalMinutes} minutes``.\n", false, Utility.BuildContest(contest));
+                                    }
+                            _contestNotificationsHistory[contest.Id] = DateTime.UtcNow;
                         }
-                        if ((Utility.FromUnixTime(contest.StartTime) - DateTime.UtcNow).TotalMinutes <= 60)
-                            if ((DateTime.Now - _contestNotificationsHistory[contest.Id]).TotalMinutes >= 20 && Utility.FromUnixTime(contest.StartTime) > DateTime.Now)
-                                foreach (var user in _userList)
-                                {
-                                    if (!_subscribersList.Contains(user.Key)) continue;
-
-                                    var guildUser =
-                                        MyServer.Users.FirstOrDefault(i => i.Id == user.Key);//.Split('#')[1]);
-
-                                    if (guildUser == null)
-                                        continue;
-
-                                    var channel = guildUser.GetOrCreateDMChannelAsync().Result;
-
-                                    if (channel == null)
-                                        continue;
-
-                                    await channel.SendMessageAsync("Contest starts soon\n", false, Utility.BuildContest(contest));
-                                }
-                        _contestNotificationsHistory[contest.Id] = DateTime.Now;
                     }
-                } 
-                catch
-                {
-                    Console.WriteLine("Notifications fucked up!");
+                    catch
+                    {
+                        Console.WriteLine("Notifications fucked up!");
+                    }
+                    await Task.Delay(60000 * 5);
                 }
-            }).Repeat(new CancellationTokenSource().Token, TimeSpan.FromMinutes(1));
+            });
         }
         public async void AddUser(ulong discordId, string codeforcesHandle)
         {
@@ -117,13 +119,12 @@ namespace algochan.Services
 
                 while (users.Read())
                 {
-                    var sdiscordId = users["discordId"] as string;
-                    ulong discordId;
-                    ulong.TryParse(sdiscordId, out discordId);
+                    var discordId = (Convert.ToUInt64(users["discordId"]));
 
                     if (discordId != 0)
-                        _subscribersList.Add(discordId);
+                        _subscribersList.Add((ulong)discordId);
                 }
+                NotifyCheck();
             });
         }
         public List<string> GetAllFavorites(ulong discordId)

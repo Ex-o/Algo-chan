@@ -65,6 +65,13 @@ namespace algochan.Bot
             if (!(message.HasCharPrefix('!', ref argPos) ||
                   message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
             var context = new CommandContext(_client, message);
+            if (context.Channel.Name != "bot")
+            {
+                await message.DeleteAsync();
+                await context.User.SendMessageAsync("I only work in ``#bot`` channel. I am a bot after all!");
+                return;
+            }
+
             var result = await _cmdservice.ExecuteAsync(context, argPos, _servives);
             
 

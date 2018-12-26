@@ -75,7 +75,7 @@ namespace algochan.Services
 
         public SQLiteDataReader GetSubscribers()
         {
-            return Query("SELECT * FROM subscribers");
+            return Query($@"SELECT * FROM subscribers");
         }
 
         internal void RemoveSubscribe(ulong id)
