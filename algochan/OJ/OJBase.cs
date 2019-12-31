@@ -6,7 +6,7 @@ namespace algochan.OJ
 {
     public class OjBase : IOnlineJudgeBase
     {
-        private readonly List<Contest> _contests;
+        private List<Contest> _contests;
 
         public OjBase(string name)
         {
@@ -22,6 +22,7 @@ namespace algochan.OJ
         }
         public virtual void ReloadContests()
         {
+            _contests.Clear();
         }
         public virtual bool IsOnline(string api)
         {

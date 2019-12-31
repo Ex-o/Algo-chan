@@ -64,7 +64,19 @@ namespace algochan.Bot.Modules.CodeforcesModule
 
             if (lastSub[0].ContestId == rndContest.Item2 && lastSub[0].Problem.Index == rndContest.Item3.ToString())
             {
-                _userManager.AddUser(discordInfo, codeforcesHandle);
+                await _userManager.AddUser(discordInfo, codeforcesHandle);
+                
+                var rating = _userManager.GetUser(discordInfo).Rating;
+                var role = Utility.RolePicker(rating);
+                var user = _userManager.FindUser(discordInfo, Context.Guild.Id);
+                await user.AddRoleAsync(Context.Guild.Roles.First(w => w.Name == role));
+
+
+                if (rating >= 1900 && Context.Guild.Id == 326795829664808960)
+                    await user.AddRoleAsync(Context.Guild.Roles.First(w => w.Name == "Real Div1"));
+
+                if (rating > 1500 && Context.Guild.Id == 326795829664808960)
+                    await user.AddRoleAsync(Context.Guild.Roles.First(w => w.Name == "1500+"));
 
                 #region ReplyBuild
 
@@ -94,12 +106,6 @@ namespace algochan.Bot.Modules.CodeforcesModule
                 #endregion
 
                 await ReplyAsync("", false, embed);
-
-                await Task.Delay(50);
-                var rating = _userManager.GetUser(discordInfo).Rating;
-                var role = Utility.RolePicker(rating);
-
-                await _userManager.FindUser(discordInfo).AddRoleAsync(Context.Guild.Roles.First(w => w.Name == role));
             }
             else
             {

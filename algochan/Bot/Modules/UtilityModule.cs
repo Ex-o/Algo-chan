@@ -129,7 +129,6 @@ namespace algochan.Bot.Modules
             else
                 await ReplyAsync("Bassel?");
         }
-
         
     }
 }

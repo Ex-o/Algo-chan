@@ -34,7 +34,15 @@ namespace algochan.Bot.Modules.CodeforcesModule
         [RequireUserPermission(ChannelPermission.ManageMessages)]
         public async Task UpdateRoles()
         {
-            await _userManager.UpdateSerliazedObjects();
+            if(Context.Guild.Id != 326795829664808960)
+            {
+                await ReplyAsync("Only CPC moderators are allowed to use this at https://discordapp.com/invite/algorithms.");
+                return;
+            }
+            //Task.Factory.StartNew(() =>
+            //{
+            await  _userManager.UpdateSerliazedObjects();
+            //});
             await ReplyAsync("Alright, don't cry when you go down tho!");
         }
 

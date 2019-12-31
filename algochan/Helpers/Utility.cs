@@ -86,6 +86,22 @@ namespace algochan.Helpers
             return embed;
         }
 
+        public static string RolePicker(string role)
+        {
+            string ret = null;
+            if (role.ToLower() == "newbie") ret = "Newbie";
+            else if (role.ToLower() == "pupil") ret = "Pupil";
+            else if (role.ToLower() == "specialist") ret = "Specialist";
+            else if (role.ToLower() == "expert") ret = "Expert";
+            else if (role.ToLower() == "candidate master") ret = "Candidate Master";
+            else if (role.ToLower() == "master") ret = "Master";
+            else if (role.ToLower() == "international master") ret = "International Master";
+            else if (role.ToLower() == "grandmaster") ret = "Grandmaster";
+            else if (role.ToLower() == "international grandmaster") ret = "International Grandmaster";
+            else if (role.ToLower() == "legendary grandmaster") ret = "Legendary Grandmaster";
+
+            return ret;
+        }
         public static string RolePicker(int rating)
         {
             var role = "Newbie";

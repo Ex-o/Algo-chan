@@ -13,5 +13,6 @@ namespace algochan.Services
     {
         public static ProblemSet ProblemSet { get; set; }
         public static Dictionary<int, List<Problem>> ContestsProblemsList { get; set; }
+        public static bool Initialized { get; set; }
     }
 }

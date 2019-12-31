@@ -39,7 +39,8 @@ namespace algochan.OJ
 
         public override void ReloadContests()
         {
-
+            base.ReloadContests();
+            ParseContests();
         }
         private void ParseWebPages()
         {

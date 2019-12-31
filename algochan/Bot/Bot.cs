@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Linq;
 using System.Threading.Tasks;
 using algochan.OJ;
 using algochan.Services;
@@ -31,7 +32,7 @@ namespace algochan.Bot
             await InitCommands();
             await _client.LoginAsync(TokenType.Bot, _token);
             await _client.StartAsync();
-            await _client.SetGameAsync("!help");
+            await _client.SetGameAsync("discord.gg/algorithms");
             await Task.Delay(-1);
         }
 
@@ -62,15 +63,27 @@ namespace algochan.Bot
             //   await message.DeleteAsync();
             //    return;
             //}
+
+            if (message.Content.ToLower().Contains("orz"))
+            {
+                SocketGuild guild = ((SocketGuildChannel)message.Channel).Guild;
+                IEmote emote = guild.Emotes.First(e => e.Name == "orz");
+                await message.AddReactionAsync(emote);
+            }
+
             if (!(message.HasCharPrefix('!', ref argPos) ||
                   message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
             var context = new CommandContext(_client, message);
-            if (context.Channel.Name != "bot")
+            var users = await context.Guild.GetUsersAsync();
+            if (context.Channel.Name != "bot" && context.Channel.Name != "virtual-contests" 
+                && !users.Any(i => i.GuildPermissions.ManageMessages == true && i.Id == context.User.Id))
             {
                 await message.DeleteAsync();
                 await context.User.SendMessageAsync("I only work in ``#bot`` channel. I am a bot after all!");
                 return;
             }
+
+        
 
             var result = await _cmdservice.ExecuteAsync(context, argPos, _servives);
             

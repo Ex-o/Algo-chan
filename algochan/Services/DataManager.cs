@@ -1,17 +1,23 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Data.SQLite;
 using System.Runtime.Remoting.Channels;
+using System.Web.Script.Serialization;
 using algochan.Helpers;
+using cfapi.Objects;
 
 namespace algochan.Services
 {
     public class DataManager
     {
         private const string SERVER =
-            @"Data Source=C:\Users\algochan\Desktop\algochan\algochan.db;Version=3;";
+            @"Data Source=C:\Users\algochanru\Desktop\algochan\algochan.db;Version=3;";
 
         private const string LOCAL =
             @"Data Source=C:\Users\Desktop\algo\algochan.db;Version=3;";
-        private readonly SQLiteConnection _dbConnection = new SQLiteConnection(SERVER);
+
+        private const string LOCAL2 =
+            @"Data Source=C:\Users\kmepv\Documents\GitHub\TLE\tle\data\db\user.db;Version=3;";
+        private readonly SQLiteConnection _dbConnection = new SQLiteConnection(LOCAL);
 
         public SQLiteDataReader Query(string qString)
         {
@@ -19,6 +25,30 @@ namespace algochan.Services
             return cmd.ExecuteReader();
         }
 
+        public void Migrate()
+        {
+            SQLiteConnection dbc = new SQLiteConnection(LOCAL2);
+            dbc.Open();
+
+            var users = GetAllUsers();
+            while (users.Read())
+            {
+                try
+                {
+                    var discordId = Convert.ToUInt64(users["discordInfo"] as string);
+                    var usr 
+                        = new JavaScriptSerializer().Deserialize<User>(
+                            EncryptionHelper.Decrypt(users["serializedData"] as string));
+
+                    
+                    var cmd = new SQLiteCommand($@"INSERT INTO cf_user_cache (handle, first_name, country, city, organization, contribution, rating, last_online_time, registration_time, friend_of_count, title_photo) values(""{usr.Handle}"", ""{usr.FirstName}"", ""{usr.Country}"", ""{usr.City}"", ""{usr.Organization}"", ""{usr.Contribution}"", ""{usr.Rating}"", ""{usr.LastOnlineTimeSeconds}"", ""{usr.RegistrationTimeSeconds}"", ""{usr.FriendOfCount}"", ""{usr.TitlePhotoUrl}"")", dbc);
+                    cmd.ExecuteReader();
+                }
+                catch { }
+            }
+
+            Console.WriteLine("Finished Migration");
+        }
         public void Initialize()
         {
             _dbConnection.Open();

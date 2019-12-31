@@ -27,7 +27,10 @@ namespace algochan.Bot.Modules.CodeforcesModule
         {
             List<KeyValuePair<int, int>> availableContests = new List<KeyValuePair<int, int>>();
 
-            availableContests = await _userManager.VirtualContestPicker(handles.Split(' '));
+            var handlesList = handles.Split(' ').ToList();
+            handlesList.RemoveAll(i => i == null || string.IsNullOrEmpty(i) || string.IsNullOrWhiteSpace(i));
+
+            availableContests = await _userManager.VirtualContestPicker(handlesList.ToArray());
             //var rndSelection = availableContests.OrderBy(x => Guid.NewGuid()).ToList().Take(5);
             var globalContests = RandomContestGenerator.Contests;
             List<Contest> rndSelection = globalContests.Where(i => availableContests.Any(x => x.Value >= count && x.Key == i.Id && i.Name.Contains(div.ToLower() == "div1" ? "Div. 1" : "Div. 2"))).OrderBy(x => Guid.NewGuid()).ToList().Take(6).ToList();
@@ -63,6 +66,11 @@ namespace algochan.Bot.Modules.CodeforcesModule
         [Command("vc")]
         public async Task Pick(string div, int count, string handles)
         {
+            if(string.IsNullOrEmpty(handles))
+            {
+                await ReplyAsync("Incorrect parameters!");
+                return;
+            }
             Task.Factory.StartNew(() =>
             {
                 ContestPicker(div, count, handles);
@@ -73,7 +81,17 @@ namespace algochan.Bot.Modules.CodeforcesModule
         [RequireOwner]
         public async Task Magic(string strRole)
         {
-            await _userManager.UpdateRole(Context.User.Id, strRole);
+            string role = Utility.RolePicker(strRole);
+            if (role == null) return;
+            await _userManager.UpdateRole(Context.User.Id, role);
+        }
+
+        [Command("realdiv1")]
+        [RequireOwner]
+        public async Task RealDiv()
+        {
+            await _userManager.AddRealDiv1();
+            await ReplyAsync("Finished adding real div1s");
         }
     }
 }
